@@ -26,8 +26,8 @@ _sudo_complete() {
 
         # Check if we have a completion file for the command after sudo,
         # and source it
-        if [[ -f ~/.config/bashcomplete/${COMP_WORDS[1]} ]]; then
-            . ~/".config/bashcomplete/${COMP_WORDS[1]}"
+        if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/bashcomplete/${COMP_WORDS[1]} ]]; then
+            . "${XDG_CONFIG_HOME:-$HOME/.config}/bashcomplete/${COMP_WORDS[1]}"
         fi
 
         # Check if we have a completion function defined for the
