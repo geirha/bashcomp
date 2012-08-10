@@ -1,0 +1,42 @@
+#!/bin/bash
+
+complete -p sudo >/dev/null 2>&1 && return
+
+type sudo >/dev/null 2>&1 || return
+
+_sudo_complete() {
+    local f
+    declare -A ex
+
+    if (( COMP_CWORD == 1 )); then
+
+        # populate ex(clude) array with all aliases, builtins, keywords
+        # and functions that don't have a file with the same name in
+        # PATH
+        while read -r f; do
+            type -P "$f" >/dev/null 2>&1 || ex["$f"]=
+        done < <(compgen -abkA function "$2")
+
+        # complete all commands that exist in PATH
+        while read -r f; do
+            [[ ${ex[$f]+set} ]] || COMPREPLY+=("$f")
+        done < <(compgen -c "$2")
+
+    else
+
+        # Check if we have a completion file for the command after sudo,
+        # and source it
+        if [[ -f ~/.config/bashcomplete/${COMP_WORDS[1]} ]]; then
+            . ~/".config/bashcomplete/${COMP_WORDS[1]}"
+        fi
+
+        # Check if we have a completion function defined for the
+        # command, and use that.
+        f=_${COMP_WORDS[1]//[![:alnum:]_]/_}_complete
+        if declare -F "$f" >/dev/null; then
+            "$f" "$@"
+        fi
+    fi
+}
+
+complete -o default -F _sudo_complete sudo

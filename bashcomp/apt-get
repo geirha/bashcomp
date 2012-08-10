@@ -1,0 +1,56 @@
+#!/bin/bash
+
+complete -p apt-get >/dev/null 2>&1 && return
+
+type apt-get apt-cache grep-status >/dev/null 2>&1 || return
+
+_search_packages() {
+    # Outputs all packages and source packages, one per line, that start
+    # with "$1". Used by _apt_get_complete
+    apt-cache dumpavail |
+        awk -v "l=${#1}" -v "s=$1" '
+            $1~/Source:|Package:/ && substr($2,1,l)==s && !a[$2]++ {
+                print $2
+            }
+        '
+}
+
+_apt_get_complete() {
+
+    local i=COMP_CWORD source=0 packages=0 installed=0 cmds=(
+        update upgrade install remove autoremove purge source build-dep
+        dist-upgrade dselect-upgrade clean autoclean check changelog
+        download
+    )
+
+    # Iterate backwards through the words and see if we can find an
+    # apt-get command, to decide what to complete.
+    while ((--i>0)) && [[ ${COMP_WORDS[i]} != apt-get ]]; do
+        case ${COMP_WORDS[i]} in
+            source)
+                source=1
+                break
+            ;;
+            update|upgrade|install|build-dep|download|changelog)
+                packages=1
+                break
+            ;;
+            remove|purge)
+                installed=1
+                break
+            ;;
+        esac
+    done
+    
+    if ((source)); then
+        mapfile -t COMPREPLY < <(_search_packages "$2")
+    elif ((packages)); then
+        mapfile -t COMPREPLY < <(apt-cache --no-generate pkgnames "$2")
+    elif ((installed)); then
+        mapfile -t COMPREPLY < <(grep-status -Pr "^$2" -ns Package)
+    else
+        mapfile -t COMPREPLY < <(IFS=' ' compgen -W "${cmds[*]}" "$2")
+    fi
+}
+
+complete -F _apt_get_complete apt-get

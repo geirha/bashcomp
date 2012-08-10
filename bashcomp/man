@@ -1,0 +1,58 @@
+#!/bin/bash
+
+complete -p man >/dev/null 2>&1 && return
+
+type man >/dev/null 2>&1 || return
+
+_man_complete() {
+    local page sec desc i j
+
+    # Just in case man isn't the first word
+    for (( i = 0; i < COMP_CWORD; ++i )); do
+        [[ ${COMP_WORDS[i]} = man ]] && break
+    done
+
+    case $COMP_TYPE in
+        9) # TAB (hit TAB once)
+            if (( i+1 == COMP_CWORD )); then
+                # man foo<tab>
+                while IFS=$' \t' read -r page _; do
+                    [[ $page = "$2"* ]] || continue
+                    COMPREPLY+=("$page")
+                done < <(man -k "^$2" 2>/dev/null)
+            else
+                # Just a silly precaution. man-pages won't have globchars.
+                [[ $2 = *[]*?[]* ]] && return
+
+                # Assuming something like ''man 5 foo<tab>''. Complete man-pages
+                # starting with "foo" in section 5.
+                while IFS=$' \t()' read -r page sec _; do
+                    [[ $page = "$2"* && $sec = "$3" ]] || continue 
+                    COMPREPLY+=("$page")
+                done < <(man -k "^$2" 2>/dev/null)
+            fi
+        ;;
+        63) # '?' (hit TAB twice), let's also list description
+            if (( i+1 == COMP_CWORD )); then
+                # man foo<tab><tab>
+                j=0
+                while IFS=$' \t()' read -r page sec desc; do
+                    [[ $page = "$2"* ]] || continue
+                    printf -v 'COMPREPLY[j++]' \
+                        '%-20s %s' "$page ($sec)" "$desc"
+                done < <(man -k "^$2" 2>/dev/null)
+            else
+                # Assuming something like ''man 5 foo<tab><tab>''.
+                # Complete man-pages starting with "foo" in section 5.
+                j=0
+                while IFS=$' \t()' read -r page sec desc; do
+                    [[ $page = "$2"* && $sec = "$3" ]] || continue
+                    printf -v 'COMPREPLY[j++]' \
+                        '%-20s %s' "$page ($sec)" "$desc"
+                done < <(man -k "^$2" 2>/dev/null)
+            fi
+        ;;
+    esac
+}
+
+complete -F _man_complete man

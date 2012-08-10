@@ -1,0 +1,42 @@
+#!/bin/bash
+
+complete -p aptitude >/dev/null 2>&1 && return
+
+type apt-get apt-cache grep-status >/dev/null 2>&1 || return
+
+_aptitude_complete() {
+
+    local i=COMP_CWORD installed=0 packages=0 cmds=(
+        install remove purge hold unhold markauto unmarkauto
+        forbid-version update safe-upgrade full-upgrade build-dep
+        forget-new search show versions clean autoclean changelog
+        download reinstall why why-not
+    )
+
+    # Iterate backwards through the words and see if we can find an
+    # aptitude command, to decide what to complete.
+    while ((--i>0)) && [[ ${COMP_WORDS[i]} != aptitude ]]; do
+        case ${COMP_WORDS[i]} in
+            full-upgrade|safe-upgrade|install|build-dep|build-depends|\
+            download|changelog|show|versions|search)
+                packages=1
+                break
+            ;;
+            forbid-version|hold|install|markauto|purge|reinstall|\
+            remove|unhold|unmarkauto)
+                installed=1
+                break
+            ;;
+        esac
+    done
+    
+    if ((packages)); then
+        mapfile -t COMPREPLY < <(apt-cache --no-generate pkgnames "$2")
+    elif ((installed)); then
+        mapfile -t COMPREPLY < <(grep-status -Pr "^$2" -ns Package)
+    else
+        mapfile -t COMPREPLY < <(IFS=' ' compgen -W "${cmds[*]}" "$2")
+    fi
+}
+
+complete -F _aptitude_complete aptitude

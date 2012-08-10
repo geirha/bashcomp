@@ -1,0 +1,5 @@
+#!/bin/bash
+
+complete -p type >/dev/null 2>&1 && return
+
+complete -c type
