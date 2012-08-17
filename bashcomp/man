@@ -21,9 +21,6 @@ _man_complete() {
                     COMPREPLY+=("$page")
                 done < <(man -k "^$2" 2>/dev/null)
             else
-                # Just a silly precaution. man-pages won't have globchars.
-                [[ $2 = *[]*?[]* ]] && return
-
                 # Assuming something like ''man 5 foo<tab>''. Complete man-pages
                 # starting with "foo" in section 5.
                 while IFS=$' \t()' read -r page sec _; do
