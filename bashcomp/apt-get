@@ -17,7 +17,7 @@ _search_packages() {
 
 _apt_get_complete() {
 
-    local i=COMP_CWORD source=0 packages=0 installed=0 cmds=(
+    local i=$COMP_CWORD source=0 packages=0 installed=0 cmds=(
         update upgrade install remove autoremove purge source build-dep
         dist-upgrade dselect-upgrade clean autoclean check changelog
         download
@@ -28,14 +28,17 @@ _apt_get_complete() {
     while ((--i>0)) && [[ ${COMP_WORDS[i]} != apt-get ]]; do
         case ${COMP_WORDS[i]} in
             source)
+                # binary and source packages
                 source=1
                 break
             ;;
             update|upgrade|install|build-dep|download|changelog)
+                # binary packages
                 packages=1
                 break
             ;;
             remove|purge)
+                # installed or configured packages only
                 installed=1
                 break
             ;;

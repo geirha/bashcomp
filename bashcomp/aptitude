@@ -6,7 +6,7 @@ type apt-get apt-cache grep-status >/dev/null 2>&1 || return
 
 _aptitude_complete() {
 
-    local i=COMP_CWORD installed=0 packages=0 cmds=(
+    local i=$COMP_CWORD installed=0 packages=0 cmds=(
         install remove purge hold unhold markauto unmarkauto
         forbid-version update safe-upgrade full-upgrade build-dep
         forget-new search show versions clean autoclean changelog
@@ -19,11 +19,13 @@ _aptitude_complete() {
         case ${COMP_WORDS[i]} in
             full-upgrade|safe-upgrade|install|build-dep|build-depends|\
             download|changelog|show|versions|search)
+                # binary packages
                 packages=1
                 break
             ;;
             forbid-version|hold|install|markauto|purge|reinstall|\
             remove|unhold|unmarkauto)
+                # installed or configured packages
                 installed=1
                 break
             ;;
