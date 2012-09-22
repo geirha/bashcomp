@@ -6,7 +6,7 @@ _declare_complete() {
     if (( COMP_CWORD > 1 )); then
         case ${COMP_WORDS[1]} in
             -[fF]) mapfile -t COMPREPLY < <(compgen -A function "$2");;
-            -[lprux]) mapfile -t COMPREPLY < <(compgen -A variable "$2");;
+            -[lnprux]) mapfile -t COMPREPLY < <(compgen -A variable "$2");;
         esac
     fi
 }
