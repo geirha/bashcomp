@@ -5,7 +5,7 @@ complete -p sudo >/dev/null 2>&1 && return
 type sudo >/dev/null 2>&1 || return
 
 _sudo_complete() {
-    local f
+    local f bashcomp=${XDG_CONFIG_HOME:-$HOME/.config}/bashcomp
     declare -A ex
 
     if (( COMP_CWORD == 1 )); then
@@ -26,11 +26,11 @@ _sudo_complete() {
 
         # Check if we have a completion file for the command after sudo,
         # and source it
-        if [[ -f ${XDG_CONFIG_HOME:-$HOME/.config}/bashcomp/${COMP_WORDS[1]} ]]; then
-            . "${XDG_CONFIG_HOME:-$HOME/.config}/bashcomp/${COMP_WORDS[1]}"
+        if [[ -f $bashcomp/${COMP_WORDS[1]} ]]; then
+            . "$bashcomp/${COMP_WORDS[1]}"
         fi
 
-        # Check if we have a completion function defined for the
+        # Check if we have a _foo_completion function defined for the
         # command, and use that.
         f=_${COMP_WORDS[1]//[![:alnum:]_]/_}_complete
         if declare -F "$f" >/dev/null; then

@@ -1,0 +1,9 @@
+bashcomp loads completions as needed for the commands completions are
+written for.
+
+To install, add the content of bashrc to your ~/.bashrc, and
+copy/symlink the bashcomp directory as ~/.config/bashcomp 
+
+Note that this is incompatible with the bash-completion package, so if
+you have bash-completion installed, make sure you disable it before
+enabling this one.
